@@ -74,8 +74,10 @@
     var id = ++uid, r = rng(opt.seed || 11), w = 280, h = 160;
     var s = '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">' + defs(id);
     s += '<path d="M20 34 L260 34 L270 52 L10 52 Z" fill="#7D8A95"/>';
-    s += '<path d="M26 37 L139 37 L139 50 L16 50 Z" fill="url(#gl' + id + ')"/><path d="M141 37 L254 37 L264 50 L141 50 Z" fill="url(#gl' + id + ')"/>';
-    for (var x = 30; x < 250; x += 10) {
+    var lid = opt.solid ? '#E9EEF2' : 'url(#gl' + id + ')';
+    s += '<path d="M26 37 L139 37 L139 50 L16 50 Z" fill="' + lid + '"/><path d="M141 37 L254 37 L264 50 L141 50 Z" fill="' + lid + '"/>';
+    if (opt.solid) s += '<rect x="70" y="41" width="30" height="4" rx="2" fill="#55626C"/><rect x="180" y="41" width="30" height="4" rx="2" fill="#55626C"/>';
+    for (var x = 30; x < 250 && !opt.solid; x += 10) {
       var c = GOODS[Math.floor(r() * GOODS.length)];
       s += '<rect x="' + x + '" y="' + (40 + r() * 4) + '" width="8" height="6" rx="1" fill="' + c + '" opacity=".85"/>';
     }
@@ -156,6 +158,106 @@
     return s + '</svg>';
   }
 
+  function gondola(opt) {
+    opt = opt || {};
+    var id = ++uid, r = rng(opt.seed || 51), w = 200, h = 250;
+    var s = '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">' + defs(id);
+    var post = opt.steel ? '#5E6B76' : 'url(#st' + id + ')';
+    if (!opt.steel) {
+      s += '<rect x="18" y="34" width="164" height="194" fill="#E4EAEF"/>';
+      for (var py = 44; py < 226; py += 10) for (var px = 26; px < 178; px += 10) s += '<circle cx="' + px + '" cy="' + py + '" r="1" fill="#C3CDD5"/>';
+    }
+    s += '<rect x="10" y="' + (opt.header ? 30 : 14) + '" width="8" height="' + (opt.header ? 200 : 216) + '" fill="' + post + '"/>';
+    s += '<rect x="182" y="' + (opt.header ? 30 : 14) + '" width="8" height="' + (opt.header ? 200 : 216) + '" fill="' + post + '"/>';
+    if (opt.header) {
+      s += '<rect x="6" y="4" width="188" height="28" rx="3" fill="#8B1218"/>';
+      s += '<text x="100" y="24" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="15" fill="#fff">TOP III</text>';
+    }
+    var shelves = [76, 116, 156, 196];
+    shelves.forEach(function (y) {
+      if (opt.steel) {
+        var bx = 22;
+        while (bx < 170) {
+          var bw = 26 + Math.floor(r() * 18), bh = 18 + Math.floor(r() * 14);
+          if (bx + bw > 178) break;
+          s += '<rect x="' + bx + '" y="' + (y - bh) + '" width="' + bw + '" height="' + bh + '" fill="#C89B6A" stroke="#A97E52"/><rect x="' + bx + '" y="' + (y - bh) + '" width="' + bw + '" height="4" fill="#B88A5A"/>';
+          bx += bw + 4;
+        }
+      } else {
+        s += goods(r, 20, y, 160);
+      }
+      s += '<rect x="14" y="' + y + '" width="172" height="5" fill="' + (opt.steel ? '#7D8A95' : '#AEB8C1') + '"/>';
+      s += '<rect x="14" y="' + (y + 5) + '" width="172" height="3" fill="' + (opt.steel ? '#4A5A68' : '#8E9AA4') + '"/>';
+    });
+    if (!opt.steel) s += goods(r, 20, 226, 160);
+    s += '<rect x="8" y="226" width="184" height="16" rx="2" fill="' + (opt.steel ? '#4A5A68' : '#55626C') + '"/>';
+    return s + '</svg>';
+  }
+
+  function basket(opt) {
+    opt = opt || {};
+    var id = ++uid, color = opt.color || '#8B1218', w = 200, h = opt.wheels ? 210 : 170;
+    var s = '<svg viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">';
+    s += '<defs><clipPath id="bk' + id + '"><path d="M22 62 L178 62 L164 150 L36 150 Z"/></clipPath></defs>';
+    if (opt.wheels) {
+      s += '<path d="M168 70 L186 6" stroke="#8E9AA4" stroke-width="5" stroke-linecap="round"/><rect x="176" y="0" width="20" height="10" rx="4" fill="#1E2429"/>';
+    } else {
+      s += '<path d="M44 62 Q60 8 96 10" stroke="#3A444C" stroke-width="6" fill="none" stroke-linecap="round"/>';
+      s += '<path d="M156 62 Q140 8 104 10" stroke="#3A444C" stroke-width="6" fill="none" stroke-linecap="round"/>';
+      s += '<rect x="86" y="4" width="28" height="12" rx="6" fill="#1E2429"/>';
+    }
+    if (opt.wire) {
+      s += '<g clip-path="url(#bk' + id + ')" stroke="#8E9AA4" stroke-width="2.2">';
+      for (var x = 22; x < 180; x += 12) s += '<line x1="' + x + '" y1="60" x2="' + (100 + (x - 100) * .82) + '" y2="152"/>';
+      for (var y = 74; y < 152; y += 12) s += '<line x1="10" y1="' + y + '" x2="190" y2="' + y + '"/>';
+      s += '</g><path d="M22 62 L178 62 L164 150 L36 150 Z" fill="none" stroke="#6B7882" stroke-width="3"/>';
+    } else {
+      s += '<path d="M22 62 L178 62 L164 150 L36 150 Z" fill="' + color + '"/>';
+      s += '<g clip-path="url(#bk' + id + ')" fill="#000" opacity=".28">';
+      for (var yy = 78; yy < 146; yy += 13) for (var xx = 30; xx < 172; xx += 15) s += '<rect x="' + xx + '" y="' + yy + '" width="10" height="7" rx="2"/>';
+      s += '</g><rect x="72" y="100" width="56" height="18" rx="3" fill="#fff"/>';
+      s += '<text x="100" y="113" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="10" fill="' + color + '">TOP III</text>';
+    }
+    s += '<rect x="16" y="56" width="168" height="10" rx="3" fill="' + (opt.wire ? '#6B7882' : '#1E2429') + '" opacity="' + (opt.wire ? 1 : .55) + '"/>';
+    if (opt.wheels) {
+      s += '<rect x="36" y="150" width="128" height="8" rx="2" fill="#3A444C"/><path d="M48 158 L48 176 M152 158 L152 176" stroke="#3A444C" stroke-width="5"/>';
+      s += '<circle cx="48" cy="190" r="13" fill="#222"/><circle cx="48" cy="190" r="4" fill="#8E9AA4"/><circle cx="152" cy="190" r="13" fill="#222"/><circle cx="152" cy="190" r="4" fill="#8E9AA4"/>';
+    }
+    return s + '</svg>';
+  }
+
+  function cart() {
+    var id = ++uid, s = '<svg viewBox="0 0 230 190" xmlns="http://www.w3.org/2000/svg">';
+    s += '<defs><clipPath id="ct' + id + '"><path d="M30 30 L192 30 L172 112 L52 112 Z"/></clipPath></defs>';
+    s += '<g clip-path="url(#ct' + id + ')" stroke="#9AA7B1" stroke-width="2">';
+    for (var x = 30; x < 196; x += 10) s += '<line x1="' + x + '" y1="28" x2="' + x + '" y2="114"/>';
+    for (var y = 40; y < 114; y += 10) s += '<line x1="20" y1="' + y + '" x2="200" y2="' + y + '"/>';
+    s += '</g><path d="M30 30 L192 30 L172 112 L52 112 Z" fill="none" stroke="#6B7882" stroke-width="4" stroke-linejoin="round"/>';
+    s += '<path d="M192 30 L214 16" stroke="#6B7882" stroke-width="5" stroke-linecap="round"/><rect x="206" y="6" width="20" height="14" rx="4" fill="#8B1218"/>';
+    s += '<rect x="150" y="36" width="34" height="18" rx="3" fill="#8B1218"/><text x="167" y="49" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="8" fill="#fff">TOP III</text>';
+    s += '<path d="M56 112 L62 160 M170 112 L176 160 M60 140 L178 140 M58 160 L186 160" stroke="#6B7882" stroke-width="4" stroke-linecap="round"/>';
+    s += '<circle cx="64" cy="174" r="11" fill="#222"/><circle cx="64" cy="174" r="4" fill="#8E9AA4"/><circle cx="178" cy="174" r="11" fill="#222"/><circle cx="178" cy="174" r="4" fill="#8E9AA4"/>';
+    return s + '</svg>';
+  }
+
+  function checkout(opt) {
+    opt = opt || {};
+    var id = ++uid, s = '<svg viewBox="0 0 270 180" xmlns="http://www.w3.org/2000/svg">' + defs(id);
+    s += '<rect x="214" y="16" width="4" height="40" fill="#3A444C"/><rect x="192" y="0" width="48" height="32" rx="3" fill="#1E2429"/><rect x="196" y="4" width="40" height="22" fill="#5FA8D3" opacity=".7"/>';
+    s += '<rect x="10" y="66" width="250" height="90" rx="3" fill="url(#st' + id + ')"/>';
+    if (opt.belt) {
+      s += '<rect x="10" y="56" width="160" height="12" rx="3" fill="#1E2429"/>';
+      for (var x = 16; x < 166; x += 10) s += '<rect x="' + x + '" y="59" width="2" height="6" fill="#3A444C"/>';
+    } else {
+      s += '<rect x="10" y="58" width="160" height="10" rx="2" fill="#C9D2DA"/>';
+    }
+    s += '<rect x="170" y="58" width="90" height="10" rx="2" fill="#AEB8C1"/><rect x="176" y="48" width="22" height="10" rx="2" fill="#2F383F"/><rect x="179" y="50" width="16" height="4" fill="#E04848" opacity=".8"/>';
+    s += '<rect x="10" y="84" width="250" height="22" fill="#8B1218"/><text x="135" y="100" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="13" fill="#fff">TOP III</text>';
+    s += '<rect x="200" y="116" width="50" height="34" rx="2" fill="none" stroke="#8E9AA4" stroke-width="1.5"/><rect x="220" y="130" width="10" height="4" rx="2" fill="#55626C"/>';
+    s += '<rect x="10" y="156" width="250" height="12" fill="#3A444C"/>';
+    return s + '</svg>';
+  }
+
   function service() {
     var s = '<svg viewBox="0 0 160 150" xmlns="http://www.w3.org/2000/svg">';
     s += '<circle cx="80" cy="75" r="64" fill="#F7E8E9"/>';
@@ -172,6 +274,18 @@
     v4s: function () { return vertical(4, { seed: 21, header: '#4A5A68' }); },
     chest: function () { return chest(); },
     chestS: function () { return chest({ stripe: '#4A5A68', seed: 31 }); },
+    chestSolid: function () { return chest({ solid: true }); },
+    vFreezer: function () { return vertical(1, { seed: 61, header: '#4A5A68' }); },
+    gondolaWall: function () { return gondola({ seed: 53 }); },
+    gondolaCentral: function () { return gondola({ seed: 57, header: true }); },
+    shelfSteel: function () { return gondola({ steel: true, seed: 59 }); },
+    basketRed: function () { return basket(); },
+    basketSteel: function () { return basket({ color: '#4A5A68' }); },
+    basketWire: function () { return basket({ wire: true }); },
+    basketWheels: function () { return basket({ wheels: true }); },
+    cart: cart,
+    checkout: function () { return checkout(); },
+    checkoutBelt: function () { return checkout({ belt: true }); },
     counter2: function () { return counter(2); },
     counter3: function () { return counter(3, { glass: true }); },
     coldroom: coldroom,
@@ -181,17 +295,29 @@
     service: service
   };
 
-  // ===== Catálogo =====
+  // ===== Catálogo (cada categoria vira uma seção da vitrine) =====
   var CATS = [
-    { id: 'expositores', name: 'Expositores' },
-    { id: 'geladeiras', name: 'Geladeiras Comerciais' },
-    { id: 'freezers', name: 'Freezers' },
-    { id: 'camaras', name: 'Câmaras Frias' },
-    { id: 'balcoes', name: 'Balcões Refrigerados' },
-    { id: 'pecas', name: 'Peças de Reposição' }
+    { id: 'freezers', name: 'Freezers', img: 'chest', desc: 'Freezers horizontais, verticais e ilhas de congelados para conservar com segurança.' },
+    { id: 'expositores', name: 'Expositores Refrigerados', img: 'v2', desc: 'Expositores verticais e cervejeiras com portas de vidro e iluminação LED.' },
+    { id: 'geladeiras', name: 'Geladeiras e Balcões', img: 'v4s', desc: 'Geladeiras comerciais e balcões refrigerados para cozinhas, bares e padarias.' },
+    { id: 'camaras', name: 'Câmaras Frias', img: 'coldroom', desc: 'Câmaras frias modulares projetadas e instaladas sob medida para a sua operação.' },
+    { id: 'prateleiras', name: 'Prateleiras e Gôndolas', img: 'gondolaWall', desc: 'Gôndolas de parede, centrais e estantes de aço para loja e estoque.' },
+    { id: 'cestinhas', name: 'Cestinhas e Carrinhos', img: 'basketRed', desc: 'Cestinhas plásticas, aramadas, com rodinhas e carrinhos de compra.' },
+    { id: 'checkouts', name: 'Checkouts', img: 'checkoutBelt', desc: 'Checkouts simples e com esteira para agilizar o caixa.' },
+    { id: 'pecas', name: 'Peças de Reposição', img: 'compressor', desc: 'Compressores, micromotores, controladores e peças originais em estoque.' }
   ];
 
   var PRODUCTS = [
+    // Freezers
+    { id: 'frz-h', cat: 'freezers', img: 'chest', name: 'Freezer Horizontal Tampa de Vidro 500L', tag: 'Pronta entrega',
+      specs: [['Capacidade', '500 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '127V / 220V'], ['Tampas', '2 de vidro deslizantes']] },
+    { id: 'frz-hs', cat: 'freezers', img: 'chestSolid', name: 'Freezer Horizontal 2 Tampas Cegas 400L',
+      specs: [['Capacidade', '400 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '127V / 220V'], ['Função', 'Freezer ou refrigerador']] },
+    { id: 'frz-v', cat: 'freezers', img: 'vFreezer', name: 'Freezer Vertical Porta de Vidro 560L',
+      specs: [['Capacidade', '560 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '220V'], ['Degelo', 'Automático']] },
+    { id: 'ilha', cat: 'freezers', img: 'chestS', name: 'Ilha de Congelados Dupla Ação 2,5 m',
+      specs: [['Comprimento', '2,50 m'], ['Temperatura', '-18 °C / +2 °C'], ['Tensão', '220V'], ['Uso', 'Congelados ou resfriados']] },
+    // Expositores
     { id: 'exp-2p', cat: 'expositores', img: 'v2', name: 'Expositor Vertical 2 Portas de Vidro 1000L', tag: 'Mais vendido',
       specs: [['Capacidade', '1000 litros'], ['Temperatura', '+1 °C a +8 °C'], ['Tensão', '220V'], ['Iluminação', 'LED interna']] },
     { id: 'exp-1p', cat: 'expositores', img: 'v1', name: 'Expositor Vertical 1 Porta de Vidro 450L',
@@ -200,20 +326,46 @@
       specs: [['Capacidade', '570 litros'], ['Temperatura', '-6 °C a +2 °C'], ['Tensão', '220V'], ['Acabamento', 'Preto fosco']] },
     { id: 'exp-3p', cat: 'expositores', img: 'v3', name: 'Expositor Vertical 3 Portas de Vidro 1400L',
       specs: [['Capacidade', '1400 litros'], ['Temperatura', '+1 °C a +8 °C'], ['Tensão', '220V'], ['Prateleiras', '15 reguláveis']] },
+    // Geladeiras e balcões
     { id: 'gel-4p', cat: 'geladeiras', img: 'v4s', name: 'Geladeira Comercial 4 Portas Inox 1000L', tag: 'Inox',
       specs: [['Capacidade', '1000 litros'], ['Temperatura', '+2 °C a +7 °C'], ['Tensão', '220V'], ['Gabinete', 'Aço inox 430']] },
     { id: 'gel-2pd', cat: 'geladeiras', img: 'v2d', name: 'Refrigerador Comercial Black 2 Portas 960L',
       specs: [['Capacidade', '960 litros'], ['Temperatura', '0 °C a +7 °C'], ['Tensão', '220V'], ['Controle', 'Digital']] },
-    { id: 'frz-h', cat: 'freezers', img: 'chest', name: 'Freezer Horizontal Tampa de Vidro 500L', tag: 'Pronta entrega',
-      specs: [['Capacidade', '500 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '127V / 220V'], ['Tampas', '2 de vidro deslizantes']] },
-    { id: 'ilha', cat: 'freezers', img: 'chestS', name: 'Ilha de Congelados Dupla Ação 2,5 m',
-      specs: [['Comprimento', '2,50 m'], ['Temperatura', '-18 °C / +2 °C'], ['Tensão', '220V'], ['Uso', 'Congelados ou resfriados']] },
-    { id: 'camara', cat: 'camaras', img: 'coldroom', name: 'Câmara Fria Modular sob Medida', tag: 'Projeto',
-      specs: [['Painéis', 'EPS / PIR 100 mm'], ['Temperatura', '-25 °C a +10 °C'], ['Unidade', 'Condensadora inclusa'], ['Instalação', 'Inclusa']] },
-    { id: 'balcao-2p', cat: 'balcoes', img: 'counter2', name: 'Balcão Refrigerado Inox 2 Portas',
+    { id: 'balcao-2p', cat: 'geladeiras', img: 'counter2', name: 'Balcão Refrigerado Inox 2 Portas',
       specs: [['Capacidade', '300 litros'], ['Temperatura', '+2 °C a +8 °C'], ['Tensão', '220V'], ['Tampo', 'Inox 430']] },
-    { id: 'balcao-exp', cat: 'balcoes', img: 'counter3', name: 'Balcão Expositor Vidro Curvo 2,0 m',
+    { id: 'balcao-exp', cat: 'geladeiras', img: 'counter3', name: 'Balcão Expositor Vidro Curvo 2,0 m',
       specs: [['Comprimento', '2,00 m'], ['Temperatura', '0 °C a +5 °C'], ['Tensão', '220V'], ['Indicado', 'Frios e laticínios']] },
+    // Câmaras frias
+    { id: 'camara', cat: 'camaras', img: 'coldroom', name: 'Câmara Fria Modular para Congelados', tag: 'Projeto',
+      specs: [['Painéis', 'PIR 150 mm'], ['Temperatura', '-25 °C a -18 °C'], ['Unidade', 'Condensadora inclusa'], ['Instalação', 'Inclusa']] },
+    { id: 'camara-resf', cat: 'camaras', img: 'coldroom', name: 'Câmara Fria Modular para Resfriados',
+      specs: [['Painéis', 'EPS 100 mm'], ['Temperatura', '0 °C a +10 °C'], ['Unidade', 'Condensadora inclusa'], ['Instalação', 'Inclusa']] },
+    // Prateleiras e gôndolas
+    { id: 'gond-parede', cat: 'prateleiras', img: 'gondolaWall', name: 'Gôndola de Parede 2,00 m com 5 Níveis', tag: 'Mais vendido',
+      specs: [['Altura', '2,00 m'], ['Módulo', '1,00 m de largura'], ['Níveis', '4 prateleiras + base'], ['Pintura', 'Epóxi branca']] },
+    { id: 'gond-central', cat: 'prateleiras', img: 'gondolaCentral', name: 'Gôndola Central Dupla Face',
+      specs: [['Altura', '1,60 m'], ['Módulo', '1,00 m de largura'], ['Faces', '2 (dupla)'], ['Carga', 'Até 60 kg por nível']] },
+    { id: 'ponta', cat: 'prateleiras', img: 'gondolaCentral', name: 'Ponta de Gôndola com Testeira',
+      specs: [['Altura', '1,60 m'], ['Largura', '0,90 m'], ['Níveis', '4 prateleiras'], ['Testeira', 'Personalizável']] },
+    { id: 'estante-aco', cat: 'prateleiras', img: 'shelfSteel', name: 'Estante de Aço para Estoque 6 Bandejas',
+      specs: [['Altura', '2,00 m'], ['Bandejas', '6 reguláveis'], ['Carga', 'Até 100 kg por bandeja'], ['Chapa', 'Aço galvanizado']] },
+    // Cestinhas e carrinhos
+    { id: 'cesta-plast', cat: 'cestinhas', img: 'basketRed', name: 'Cestinha Plástica com Alça 20L', tag: 'Kit 10 un.', tagIce: true,
+      specs: [['Capacidade', '20 litros'], ['Material', 'Polipropileno'], ['Alças', '2 com pega emborrachada'], ['Cores', 'Vermelha, cinza, azul']] },
+    { id: 'cesta-cinza', cat: 'cestinhas', img: 'basketSteel', name: 'Cestinha Plástica Empilhável 16L',
+      specs: [['Capacidade', '16 litros'], ['Material', 'Polipropileno'], ['Empilhável', 'Sim'], ['Personalização', 'Logo da loja']] },
+    { id: 'cesta-aramada', cat: 'cestinhas', img: 'basketWire', name: 'Cestinha Aramada Cromada 22L',
+      specs: [['Capacidade', '22 litros'], ['Material', 'Aço cromado'], ['Alças', '2 com pega plástica'], ['Empilhável', 'Sim']] },
+    { id: 'cesta-rodinhas', cat: 'cestinhas', img: 'basketWheels', name: 'Cestinha com Rodinhas e Alça Retrátil 45L',
+      specs: [['Capacidade', '45 litros'], ['Rodas', '2 de PVC'], ['Alça', 'Telescópica'], ['Empilhável', 'Sim']] },
+    { id: 'carrinho', cat: 'cestinhas', img: 'cart', name: 'Carrinho de Compras Aramado 160L',
+      specs: [['Capacidade', '160 litros'], ['Material', 'Aço zincado'], ['Rodízios', '4 giratórios'], ['Assento', 'Infantil rebatível']] },
+    // Checkouts
+    { id: 'checkout-esteira', cat: 'checkouts', img: 'checkoutBelt', name: 'Checkout com Esteira Elétrica 2,50 m', tag: 'Supermercado',
+      specs: [['Comprimento', '2,50 m'], ['Esteira', 'Motorizada com sensor'], ['Acabamento', 'Inox + MDF'], ['Lado', 'Direito ou esquerdo']] },
+    { id: 'checkout-simples', cat: 'checkouts', img: 'checkout', name: 'Checkout Simples 1,80 m',
+      specs: [['Comprimento', '1,80 m'], ['Tampo', 'Inox'], ['Gaveta', 'Para dinheiro'], ['Indicado', 'Mercados e lojas']] },
+    // Peças
     { id: 'compressor', cat: 'pecas', img: 'compressor', name: 'Compressor Hermético 1/2 HP R290',
       specs: [['Potência', '1/2 HP'], ['Gás', 'R290'], ['Tensão', '220V'], ['Aplicação', 'Média / baixa temp.']] },
     { id: 'micromotor', cat: 'pecas', img: 'fan', name: 'Micromotor com Hélice 10W',
@@ -222,20 +374,12 @@
       specs: [['Faixa', '-50 °C a +105 °C'], ['Saídas', 'Compressor e degelo'], ['Tensão', '115V / 230V'], ['Sensor', 'NTC incluso']] }
   ];
 
-  var CATEGORY_CARDS = [
-    { name: 'Expositores', img: 'v2', filter: 'expositores', cta: 'Ver modelos' },
-    { name: 'Geladeiras Comerciais', img: 'v4s', filter: 'geladeiras', cta: 'Ver modelos' },
-    { name: 'Peças de Reposição', img: 'compressor', filter: 'pecas', cta: 'Ver peças' },
-    { name: 'Assistência Técnica', img: 'service', href: '#assistencia', cta: 'Agendar visita' }
-  ];
-
   // ===== Utilidades =====
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
   function $all(sel, ctx) { return Array.prototype.slice.call((ctx || document).querySelectorAll(sel)); }
   function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function wppUrl(msg) { return 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg || CONFIG.defaultMsg); }
   function findProduct(id) { for (var i = 0; i < PRODUCTS.length; i++) if (PRODUCTS[i].id === id) return PRODUCTS[i]; return null; }
-  function catName(id) { for (var i = 0; i < CATS.length; i++) if (CATS[i].id === id) return CATS[i].name; return ''; }
 
   var toastTimer;
   function toast(msg) {
@@ -260,59 +404,81 @@
     var el = $('#heroVisual');
     el.innerHTML = vertical(2, { seed: 41 }).replace('<svg', '<svg class="h-main"') +
       vertical(1, { dark: true, seed: 43, header: '#4A5A68' }).replace('<svg', '<svg class="h-side"') +
-      '<div class="hero__badge"><svg><use href="#i-flake"/></svg><span><b>Pronta entrega</b>Expositores a partir de 450 L</span></div>';
+      '<div class="hero__badge"><span class="hero__badge-n">25</span><span><b>anos de mercado</b>Refrigerando o comércio desde 2001</span></div>';
   }
 
-  // ===== Categorias =====
+  // ===== Categorias (atalhos para as seções) =====
   function renderCats() {
-    $('#cats').innerHTML = CATEGORY_CARDS.map(function (c) {
-      return '<a class="cat reveal" href="' + (c.href || '#produtos') + '"' + (c.filter ? ' data-filter="' + c.filter + '"' : '') + '>' +
-        '<div class="cat__img">' + DRAW[c.img]() + '</div><h3>' + esc(c.name) + '</h3><span>' + esc(c.cta) + ' →</span></a>';
+    $('#cats').innerHTML = CATS.map(function (c) {
+      var n = PRODUCTS.filter(function (p) { return p.cat === c.id; }).length;
+      return '<a class="cat reveal" href="#cat-' + c.id + '">' +
+        '<div class="cat__img">' + DRAW[c.img]() + '</div><h3>' + esc(c.name) + '</h3><span>' + n + (n === 1 ? ' modelo' : ' modelos') + ' →</span></a>';
     }).join('');
-    $all('#cats [data-filter]').forEach(function (a) {
-      a.addEventListener('click', function () { setFilter(a.getAttribute('data-filter')); });
-    });
   }
 
-  // ===== Produtos =====
-  var currentFilter = 'todos';
-
-  function renderFilters() {
-    var list = [{ id: 'todos', name: 'Todos' }].concat(CATS);
-    $('#filters').innerHTML = list.map(function (c) {
-      return '<button class="filter' + (c.id === currentFilter ? ' is-active' : '') + '" role="tab" aria-selected="' + (c.id === currentFilter) + '" data-id="' + c.id + '">' + esc(c.name) + '</button>';
-    }).join('');
-    $all('#filters .filter').forEach(function (b) {
-      b.addEventListener('click', function () { setFilter(b.getAttribute('data-id')); });
-    });
+  // ===== Vitrine em seções =====
+  function card(p) {
+    return '<article class="card">' +
+      '<div class="card__media">' + (p.tag ? '<span class="tag' + (p.tagIce ? ' tag--ice' : '') + '">' + esc(p.tag) + '</span>' : '') + DRAW[p.img]() + '</div>' +
+      '<div class="card__body">' +
+        '<h3>' + esc(p.name) + '</h3>' +
+        '<ul class="specs">' + p.specs.map(function (s) { return '<li><span>' + esc(s[0]) + '</span><b>' + esc(s[1]) + '</b></li>'; }).join('') + '</ul>' +
+        '<span class="card__warranty"><svg class="ic"><use href="#i-shield"/></svg> Garantia de 12 meses</span>' +
+        '<div class="card__actions">' +
+          '<button class="btn btn--red js-add" data-id="' + p.id + '"></button>' +
+          '<a class="btn btn--outline js-wpp" data-msg="' + esc('Olá! Gostaria de um orçamento do produto: ' + p.name + '.') + '" href="#"><svg class="ic"><use href="#i-wpp"/></svg> Comprar pelo WhatsApp</a>' +
+        '</div>' +
+      '</div></article>';
   }
 
-  function setFilter(id) {
-    currentFilter = id;
-    renderFilters();
+  function renderCatalog() {
+    $('#catnav').innerHTML = '<div class="catnav__inner">' + CATS.map(function (c) {
+      return '<a href="#cat-' + c.id + '" data-id="' + c.id + '">' + esc(c.name) + '</a>';
+    }).join('') + '</div>';
+
+    $('#catalog').innerHTML = CATS.map(function (c, i) {
+      var items = PRODUCTS.filter(function (p) { return p.cat === c.id; });
+      return '<section class="catsec" id="cat-' + c.id + '" aria-labelledby="h-' + c.id + '">' +
+        '<div class="catsec__head">' +
+          '<div class="catsec__title"><span class="catsec__num">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
+          '<div><h3 id="h-' + c.id + '">' + esc(c.name) + '</h3><p>' + esc(c.desc) + '</p></div></div>' +
+          '<a class="btn btn--outline js-wpp" href="#" data-msg="' + esc('Olá! Gostaria de um orçamento da linha ' + c.name + '.') + '"><svg class="ic"><use href="#i-wpp"/></svg> Orçamento da linha</a>' +
+        '</div>' +
+        '<div class="grid">' + items.map(card).join('') + '</div>' +
+      '</section>';
+    }).join('');
+
+    bindWpp($('#catalog'));
+    $('#catalog').addEventListener('click', function (e) {
+      var b = e.target.closest('.js-add');
+      if (b) addToQuote(b.getAttribute('data-id'));
+    });
     renderProducts();
+
+    // Destaca a seção visível na barra de categorias
+    if ('IntersectionObserver' in window) {
+      var links = $all('#catnav a');
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) return;
+          var id = en.target.id.replace('cat-', '');
+          links.forEach(function (a) {
+            var on = a.getAttribute('data-id') === id;
+            a.classList.toggle('is-active', on);
+            if (on && a.parentNode.scrollTo) a.parentNode.scrollTo({ left: a.offsetLeft - 20, behavior: 'smooth' });
+          });
+        });
+      }, { rootMargin: '-45% 0px -50% 0px' });
+      $all('.catsec').forEach(function (s) { spy.observe(s); });
+    }
   }
 
+  // Atualiza os botões "Adicionar ao orçamento" conforme a lista
   function renderProducts() {
-    var items = PRODUCTS.filter(function (p) { return currentFilter === 'todos' || p.cat === currentFilter; });
-    $('#productGrid').innerHTML = items.map(function (p) {
-      var inQuote = !!quote[p.id];
-      return '<article class="card">' +
-        '<div class="card__media">' + (p.tag ? '<span class="tag' + (p.tagIce ? ' tag--ice' : '') + '">' + esc(p.tag) + '</span>' : '') + DRAW[p.img]() + '</div>' +
-        '<div class="card__body">' +
-          '<span class="card__cat">' + esc(catName(p.cat)) + '</span>' +
-          '<h3>' + esc(p.name) + '</h3>' +
-          '<ul class="specs">' + p.specs.map(function (s) { return '<li><span>' + esc(s[0]) + '</span><b>' + esc(s[1]) + '</b></li>'; }).join('') + '</ul>' +
-          '<span class="card__warranty"><svg class="ic"><use href="#i-shield"/></svg> Garantia de 12 meses</span>' +
-          '<div class="card__actions">' +
-            '<button class="btn btn--red js-add' + (inQuote ? ' is-added' : '') + '" data-id="' + p.id + '">' + (inQuote ? '<svg class="ic"><use href="#i-check"/></svg> No orçamento' : 'Adicionar ao orçamento') + '</button>' +
-            '<a class="btn btn--outline js-wpp" data-msg="' + esc('Olá! Gostaria de um orçamento do produto: ' + p.name + '.') + '" href="#"><svg class="ic"><use href="#i-wpp"/></svg> Comprar pelo WhatsApp</a>' +
-          '</div>' +
-        '</div></article>';
-    }).join('');
-    bindWpp($('#productGrid'));
-    $all('#productGrid .js-add').forEach(function (b) {
-      b.addEventListener('click', function () { addToQuote(b.getAttribute('data-id')); });
+    $all('#catalog .js-add').forEach(function (b) {
+      var inQuote = !!quote[b.getAttribute('data-id')];
+      b.classList.toggle('is-added', inQuote);
+      b.innerHTML = inQuote ? '<svg class="ic"><use href="#i-check"/></svg> No orçamento' : 'Adicionar ao orçamento';
     });
   }
 
@@ -432,7 +598,7 @@
   // ===== Contadores e animações =====
   function animateCount(el) {
     var target = +el.getAttribute('data-count'), suffix = el.getAttribute('data-suffix') || '', start = null;
-    var prefix = suffix ? '' : '+';
+    var prefix = el.hasAttribute('data-prefix') ? el.getAttribute('data-prefix') : (suffix ? '' : '+');
     function step(t) {
       if (!start) start = t;
       var p = Math.min((t - start) / 1400, 1), v = Math.round(target * (1 - Math.pow(1 - p, 3)));
@@ -445,13 +611,12 @@
   // ===== Inicialização =====
   renderHero();
   renderCats();
-  renderFilters();
-  renderProducts();
+  renderCatalog();
   updateQuoteUI();
   bindWpp(document);
   $('#year').textContent = new Date().getFullYear();
 
-  $all('.section__head, .testi, .benefit, .split > div, .faq details').forEach(function (el) { el.classList.add('reveal'); });
+  $all('.section__head, .testi, .benefit, .split > div, .faq details, .obra').forEach(function (el) { el.classList.add('reveal'); });
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
