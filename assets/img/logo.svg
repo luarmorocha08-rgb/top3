@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" role="img" aria-label="TOP III Refrigeração e Equipamentos">
+  <defs>
+    <g id="flake" fill="none" stroke-width="2.2" stroke-linecap="round">
+      <path d="M0-12V12M-10.4-6 10.4 6M-10.4 6 10.4-6"/>
+      <path d="M-3-9 0-6 3-9M-3 9 0 6 3 9M-9.3-1.9-6.2-3.5-6.7-7M9.3 1.9 6.2 3.5 6.7 7M-9.3 1.9-6.2 3.5-6.7 7M9.3-1.9 6.2-3.5 6.7-7"/>
+    </g>
+  </defs>
+  <text x="0" y="74" font-family="'Libre Baskerville', Georgia, serif" font-size="82" font-weight="700" fill="#4A5A68" letter-spacing="-3">TOP III</text>
+  <text x="6" y="104" font-family="Montserrat, Arial, sans-serif" font-size="19" font-weight="500" fill="#4A5A68" letter-spacing="1">REFRIGERAÇÃO</text>
+  <use href="#flake" x="180" y="96" stroke="#9CC3D8"/>
+  <use href="#flake" x="210" y="96" stroke="#4A5A68"/>
+  <use href="#flake" x="240" y="96" stroke="#9CC3D8"/>
+</svg>
