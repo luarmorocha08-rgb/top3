@@ -4,7 +4,7 @@
 
   // ===== Configuração (troque pelo número real da empresa) =====
   var CONFIG = {
-    whatsapp: '5521999999999',
+    whatsapp: '5513997603462',
     defaultMsg: 'Olá! Vim pelo site da TOP III e gostaria de um orçamento.'
   };
 
