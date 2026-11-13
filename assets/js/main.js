@@ -309,7 +309,7 @@
 
   var PRODUCTS = [
     // Freezers
-    { id: 'frz-h', cat: 'freezers', img: 'chest', name: 'Freezer Horizontal Tampa de Vidro 500L', tag: 'Pronta entrega',
+    { id: 'frz-h', cat: 'freezers', img: 'chest', name: 'Freezer Horizontal Tampa de Vidro 500L', tag: 'Pronta retirada',
       specs: [['Capacidade', '500 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '127V / 220V'], ['Tampas', '2 de vidro deslizantes']] },
     { id: 'frz-hs', cat: 'freezers', img: 'chestSolid', name: 'Freezer Horizontal 2 Tampas Cegas 400L',
       specs: [['Capacidade', '400 litros'], ['Temperatura', '-18 °C a -22 °C'], ['Tensão', '127V / 220V'], ['Função', 'Freezer ou refrigerador']] },
@@ -416,17 +416,16 @@
     }).join('');
   }
 
-  // ===== Vitrine em seções =====
+  // ===== Vitrine em seções (cards estilo app) =====
   function card(p) {
-    return '<article class="card">' +
+    return '<article class="card" data-id="' + p.id + '" tabindex="0" aria-label="' + esc(p.name) + ' — ver detalhes">' +
       '<div class="card__media">' + (p.tag ? '<span class="tag' + (p.tagIce ? ' tag--ice' : '') + '">' + esc(p.tag) + '</span>' : '') + DRAW[p.img]() + '</div>' +
       '<div class="card__body">' +
         '<h3>' + esc(p.name) + '</h3>' +
-        '<ul class="specs">' + p.specs.map(function (s) { return '<li><span>' + esc(s[0]) + '</span><b>' + esc(s[1]) + '</b></li>'; }).join('') + '</ul>' +
-        '<span class="card__warranty"><svg class="ic"><use href="#i-shield"/></svg> Garantia de 12 meses</span>' +
-        '<div class="card__actions">' +
-          '<button class="btn btn--red js-add" data-id="' + p.id + '"></button>' +
-          '<a class="btn btn--outline js-wpp" data-msg="' + esc('Olá! Gostaria de um orçamento do produto: ' + p.name + '.') + '" href="#"><svg class="ic"><use href="#i-wpp"/></svg> Comprar pelo WhatsApp</a>' +
+        '<div class="card__chips">' + p.specs.slice(0, 2).map(function (s) { return '<span>' + esc(s[1]) + '</span>'; }).join('') + '</div>' +
+        '<div class="card__foot">' +
+          '<span class="card__more">Ver detalhes</span>' +
+          '<button class="add js-add" data-id="' + p.id + '" aria-label="Adicionar ' + esc(p.name) + ' ao orçamento"></button>' +
         '</div>' +
       '</div></article>';
   }
@@ -442,7 +441,7 @@
         '<div class="catsec__head">' +
           '<div class="catsec__title"><span class="catsec__num">' + (i < 9 ? '0' : '') + (i + 1) + '</span>' +
           '<div><h3 id="h-' + c.id + '">' + esc(c.name) + '</h3><p>' + esc(c.desc) + '</p></div></div>' +
-          '<a class="btn btn--outline js-wpp" href="#" data-msg="' + esc('Olá! Gostaria de um orçamento da linha ' + c.name + '.') + '"><svg class="ic"><use href="#i-wpp"/></svg> Orçamento da linha</a>' +
+          '<a class="link-wpp js-wpp" href="#" data-msg="' + esc('Olá! Gostaria de um orçamento da linha ' + c.name + '.') + '"><svg class="ic"><use href="#i-wpp"/></svg> Orçamento da linha</a>' +
         '</div>' +
         '<div class="grid">' + items.map(card).join('') + '</div>' +
       '</section>';
@@ -451,7 +450,12 @@
     bindWpp($('#catalog'));
     $('#catalog').addEventListener('click', function (e) {
       var b = e.target.closest('.js-add');
-      if (b) addToQuote(b.getAttribute('data-id'));
+      if (b) { e.stopPropagation(); addToQuote(b.getAttribute('data-id')); return; }
+      var c = e.target.closest('.card');
+      if (c) openSheet(c.getAttribute('data-id'));
+    });
+    $('#catalog').addEventListener('keydown', function (e) {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')) { e.preventDefault(); openSheet(e.target.getAttribute('data-id')); }
     });
     renderProducts();
 
@@ -473,14 +477,107 @@
     }
   }
 
-  // Atualiza os botões "Adicionar ao orçamento" conforme a lista
+  // Atualiza os botões "+" conforme a lista de orçamento
   function renderProducts() {
-    $all('#catalog .js-add').forEach(function (b) {
-      var inQuote = !!quote[b.getAttribute('data-id')];
-      b.classList.toggle('is-added', inQuote);
-      b.innerHTML = inQuote ? '<svg class="ic"><use href="#i-check"/></svg> No orçamento' : 'Adicionar ao orçamento';
+    $all('.js-add').forEach(function (b) {
+      var n = quote[b.getAttribute('data-id')] || 0;
+      b.classList.toggle('is-added', n > 0);
+      b.innerHTML = n ? '<svg class="ic"><use href="#i-check"/></svg><span>' + n + '</span>' : '<svg class="ic"><use href="#i-plus"/></svg>';
     });
+    if (sheetId) renderSheetActions();
   }
+
+  // ===== Busca =====
+  function norm(t) { return String(t).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  var searchIndex = {};
+  PRODUCTS.forEach(function (p) {
+    var cat = CATS.filter(function (c) { return c.id === p.cat; })[0];
+    searchIndex[p.id] = norm([p.name, cat ? cat.name : '', p.tag || ''].concat(p.specs.map(function (s) { return s[1]; })).join(' '));
+  });
+
+  function applySearch(q) {
+    var words = norm(q).trim().split(/\s+/).filter(Boolean), any = false;
+    $all('#catalog .card').forEach(function (c) {
+      var txt = searchIndex[c.getAttribute('data-id')];
+      var ok = words.every(function (w) { return txt.indexOf(w) > -1 || (w.length >= 4 && txt.indexOf(w.slice(0, Math.max(4, w.length - 1))) > -1); });
+      c.hidden = !ok;
+    });
+    $all('.catsec').forEach(function (s) {
+      var vis = $all('.card', s).some(function (c) { return !c.hidden; });
+      s.hidden = !vis;
+      if (vis) any = true;
+    });
+    $('#emptySearch').hidden = any;
+    $('#catnav').classList.toggle('is-dim', words.length > 0);
+  }
+
+  var searchInput = $('#productSearch');
+  searchInput.addEventListener('input', function () { applySearch(searchInput.value); });
+  function goSearch(q) {
+    searchInput.value = q || '';
+    applySearch(searchInput.value);
+    $('#produtos').scrollIntoView({ behavior: 'smooth' });
+    setTimeout(function () { searchInput.focus({ preventScroll: true }); }, 450);
+  }
+  $('#heroSearch').addEventListener('submit', function (e) {
+    e.preventDefault();
+    goSearch(e.target.elements.q.value);
+  });
+  $('#searchBtn').addEventListener('click', function () { goSearch(searchInput.value); });
+  $all('.hero-chips a, #catnav a, #cats a').forEach(function (a) {
+    a.addEventListener('click', function () { if (searchInput.value) { searchInput.value = ''; applySearch(''); } });
+  });
+
+  // ===== Detalhes do produto (bottom sheet) =====
+  var sheetId = null;
+  function renderSheetActions() {
+    var n = quote[sheetId] || 0;
+    $('#sheetActions').innerHTML =
+      (n
+        ? '<div class="sheet__qty"><span>No orçamento</span><div class="qty qty--lg"><button data-act="dec" aria-label="Diminuir">−</button><span>' + n + '</span><button data-act="inc" aria-label="Aumentar">+</button></div></div>' +
+          '<button class="btn btn--red btn--block btn--lg" data-act="open"><svg class="ic"><use href="#i-list"/></svg> Ver meu orçamento</button>'
+        : '<button class="btn btn--red btn--block btn--lg" data-act="inc"><svg class="ic"><use href="#i-plus"/></svg> Adicionar ao orçamento</button>');
+  }
+
+  function openSheet(id) {
+    var p = findProduct(id); if (!p) return;
+    var cat = CATS.filter(function (c) { return c.id === p.cat; })[0];
+    sheetId = id;
+    $('#sheetContent').innerHTML =
+      '<div class="sheet__media">' + (p.tag ? '<span class="tag' + (p.tagIce ? ' tag--ice' : '') + '">' + esc(p.tag) + '</span>' : '') + DRAW[p.img]() + '</div>' +
+      '<div class="sheet__info">' +
+        '<span class="card__cat">' + esc(cat ? cat.name : '') + '</span>' +
+        '<h3 id="sheetTitle">' + esc(p.name) + '</h3>' +
+        '<ul class="specs specs--lg">' + p.specs.map(function (s) { return '<li><span>' + esc(s[0]) + '</span><b>' + esc(s[1]) + '</b></li>'; }).join('') + '</ul>' +
+        '<div class="sheet__perks"><span><svg class="ic"><use href="#i-shield"/></svg> Garantia de 12 meses</span><span><svg class="ic"><use href="#i-factory"/></svg> Retirada na fábrica</span></div>' +
+        '<div class="sheet__actions"><div id="sheetActions"></div>' +
+        '<a class="btn btn--outline btn--block js-wpp" href="#" data-msg="' + esc('Olá! Gostaria de um orçamento do produto: ' + p.name + '.') + '"><svg class="ic"><use href="#i-wpp"/></svg> Comprar pelo WhatsApp</a></div>' +
+      '</div>';
+    bindWpp($('#sheetContent'));
+    renderSheetActions();
+    $('#sheet').classList.add('is-open');
+    $('#sheet').setAttribute('aria-hidden', 'false');
+    showBackdrop();
+    setTimeout(function () { $('#closeSheet').focus({ preventScroll: true }); }, 50);
+  }
+  function closeSheet() {
+    if (!sheetId) return;
+    var last = sheetId;
+    sheetId = null;
+    $('#sheet').classList.remove('is-open');
+    $('#sheet').setAttribute('aria-hidden', 'true');
+    hideBackdrop();
+    var c = $('#catalog .card[data-id="' + last + '"]');
+    if (c) c.focus({ preventScroll: true });
+  }
+  $('#closeSheet').addEventListener('click', closeSheet);
+  $('#sheetContent').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b || !sheetId) return;
+    var act = b.getAttribute('data-act');
+    if (act === 'inc') addToQuote(sheetId);
+    if (act === 'dec') { quote[sheetId]--; if (quote[sheetId] <= 0) delete quote[sheetId]; saveQuote(); updateQuoteUI(); renderProducts(); }
+    if (act === 'open') { closeSheet(); openDrawer(); }
+  });
 
   // ===== Lista de orçamento =====
   var STORE_KEY = 'top3-orcamento';
@@ -497,18 +594,23 @@
     return keys.map(function (k) { return '• ' + quote[k] + 'x ' + findProduct(k).name; }).join('\n');
   }
 
+  function bump(el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+
   function addToQuote(id) {
     quote[id] = (quote[id] || 0) + 1;
     saveQuote();
     updateQuoteUI();
     renderProducts();
-    var btn = $('#openQuote');
-    btn.classList.remove('bump'); void btn.offsetWidth; btn.classList.add('bump');
-    toast('Adicionado ao orçamento: ' + findProduct(id).name);
+    bump($('#openQuote')); bump($('#tabQuote'));
+    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) { /* sem vibração */ } }
+    toast('Adicionado ao orçamento ✓');
   }
 
   function updateQuoteUI() {
-    $('#quoteCount').textContent = quoteCount();
+    var n = quoteCount();
+    $('#quoteCount').textContent = n;
+    $('#tabCount').textContent = n;
+    $('#tabCount').classList.toggle('is-zero', !n);
     var body = $('#drawerBody'), keys = Object.keys(quote);
     if (!keys.length) {
       body.innerHTML = '<div class="drawer__empty"><svg><use href="#i-list"/></svg><p>Sua lista de orçamento está vazia.</p><a href="#produtos" class="btn btn--outline js-close">Ver produtos</a></div>';
@@ -518,7 +620,7 @@
         return '<div class="qitem"><div class="qitem__img">' + DRAW[p.img]() + '</div><div><strong>' + esc(p.name) + '</strong>' +
           '<div class="qty"><button data-act="dec" data-id="' + k + '" aria-label="Diminuir">−</button><span>' + quote[k] + '</span><button data-act="inc" data-id="' + k + '" aria-label="Aumentar">+</button></div></div>' +
           '<button class="qitem__rm" data-act="rm" data-id="' + k + '" aria-label="Remover"><svg class="ic"><use href="#i-x"/></svg></button></div>';
-      }).join('');
+      }).join('') + '<p class="drawer__note"><svg class="ic"><use href="#i-factory"/></svg> Os pedidos são retirados na fábrica. Combinamos o dia e o horário pelo WhatsApp.</p>';
     }
     $('#sendQuote').disabled = !keys.length;
     $('#sendQuote').style.opacity = keys.length ? '' : '.5';
@@ -540,27 +642,49 @@
     if (e.target.closest('.js-close')) closeDrawer();
   });
 
+  var openLayers = 0;
+  function showBackdrop() { openLayers++; $('#drawerBackdrop').hidden = false; document.body.style.overflow = 'hidden'; }
+  function hideBackdrop() { openLayers = Math.max(0, openLayers - 1); if (!openLayers) { $('#drawerBackdrop').hidden = true; document.body.style.overflow = ''; } }
+
   function openDrawer() {
+    if ($('#drawer').classList.contains('is-open')) return;
     $('#drawer').classList.add('is-open');
     $('#drawer').setAttribute('aria-hidden', 'false');
-    $('#drawerBackdrop').hidden = false;
-    document.body.style.overflow = 'hidden';
+    showBackdrop();
   }
   function closeDrawer() {
+    if (!$('#drawer').classList.contains('is-open')) return;
     $('#drawer').classList.remove('is-open');
     $('#drawer').setAttribute('aria-hidden', 'true');
-    $('#drawerBackdrop').hidden = true;
-    document.body.style.overflow = '';
+    hideBackdrop();
   }
+  function closeAll() { closeSheet(); closeDrawer(); }
   $('#openQuote').addEventListener('click', openDrawer);
+  $('#tabQuote').addEventListener('click', openDrawer);
   $('#closeQuote').addEventListener('click', closeDrawer);
-  $('#drawerBackdrop').addEventListener('click', closeDrawer);
+  $('#drawerBackdrop').addEventListener('click', closeAll);
   $('#toForm').addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAll(); });
   $('#sendQuote').addEventListener('click', function () {
     if (!quoteCount()) return;
-    window.open(wppUrl('Olá! Gostaria de um orçamento dos seguintes itens:\n' + quoteText()), '_blank', 'noopener');
+    window.open(wppUrl('Olá! Gostaria de um orçamento dos seguintes itens (retirada na fábrica):\n' + quoteText()), '_blank', 'noopener');
   });
+
+  // ===== Barra de abas: destaca a área visível =====
+  if ('IntersectionObserver' in window) {
+    var tabs = $all('#tabbar [data-tab]');
+    var tabSpy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var id = en.target.getAttribute('data-tab-area');
+        tabs.forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-tab') === id); });
+      });
+    }, { rootMargin: '-50% 0px -50% 0px' });
+    [['.hero', 'topo'], ['#categorias', 'produtos'], ['#produtos', 'produtos'], ['#obras', 'obras']].forEach(function (pair) {
+      var el = $(pair[0]); if (el) { el.setAttribute('data-tab-area', pair[1]); tabSpy.observe(el); }
+    });
+    $all('main > section:not([data-tab-area])').forEach(function (el) { el.setAttribute('data-tab-area', 'none'); tabSpy.observe(el); });
+  }
 
   // ===== Formulário =====
   $('#quoteForm').addEventListener('submit', function (e) {
@@ -616,7 +740,7 @@
   bindWpp(document);
   $('#year').textContent = new Date().getFullYear();
 
-  $all('.section__head, .testi, .benefit, .split > div, .faq details, .obra').forEach(function (el) { el.classList.add('reveal'); });
+  $all('.section__head, .benefit, .split > div, .faq details, .obra').forEach(function (el) { el.classList.add('reveal'); });
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
