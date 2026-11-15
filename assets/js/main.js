@@ -402,8 +402,8 @@
   // ===== Hero =====
   function renderHero() {
     var el = $('#heroVisual');
-    el.innerHTML = vertical(2, { seed: 41 }).replace('<svg', '<svg class="h-main"') +
-      vertical(1, { dark: true, seed: 43, header: '#4A5A68' }).replace('<svg', '<svg class="h-side"') +
+    el.innerHTML = '<span class="hv hv--main">' + vertical(2, { seed: 41 }) + '</span>' +
+      '<span class="hv hv--side">' + vertical(1, { dark: true, seed: 43, header: '#4A5A68' }) + '</span>' +
       '<div class="hero__badge"><span class="hero__badge-n">25</span><span><b>anos de mercado</b>Refrigerando o comércio desde 2001</span></div>';
   }
 
@@ -740,7 +740,41 @@
   bindWpp(document);
   $('#year').textContent = new Date().getFullYear();
 
-  $all('.section__head, .benefit, .split > div, .faq details, .obra').forEach(function (el) { el.classList.add('reveal'); });
+  $all('.section__head, .benefit, .split > div, .faq details, .obra, .stats__grid > div, .anniv, .band__inner, .form').forEach(function (el) { el.classList.add('reveal'); });
+  if (window.matchMedia('(min-width: 921px)').matches) $all('#catalog .card').forEach(function (el) { el.classList.add('reveal'); });
+  // Entrada escalonada: irmãos animam em sequência
+  $all('.reveal').forEach(function (el) {
+    var sibs = Array.prototype.filter.call(el.parentNode.children, function (c) { return c.classList.contains('reveal'); });
+    var i = sibs.indexOf(el);
+    if (i > 0) el.style.transitionDelay = Math.min(i, 6) * 90 + 'ms';
+  });
+
+  // Flocos de neve discretos no topo
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var frost = $('.hero__frost');
+  if (frost && !reduceMotion) {
+    var fr = rng(77), html = '';
+    for (var f = 0; f < 16; f++) {
+      var size = 8 + Math.round(fr() * 14);
+      html += '<svg style="left:' + Math.round(fr() * 100) + '%;width:' + size + 'px;height:' + size + 'px;animation-duration:' + (14 + Math.round(fr() * 16)) + 's;animation-delay:-' + Math.round(fr() * 20) + 's;opacity:' + (0.12 + fr() * 0.22).toFixed(2) + '"><use href="#i-flake"/></svg>';
+    }
+    frost.innerHTML = html;
+  }
+
+  // Barra de progresso de leitura no cabeçalho
+  var bar = document.createElement('div');
+  bar.className = 'scroll-progress';
+  header.appendChild(bar);
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(window.scrollY / max, 1) : 0) + ')';
+      ticking = false;
+    });
+  }, { passive: true });
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
@@ -750,9 +784,9 @@
         io.unobserve(en.target);
       });
     }, { threshold: .15 });
-    $all('.reveal, [data-count]').forEach(function (el) { io.observe(el); });
+    $all('.reveal, [data-count], .catsec').forEach(function (el) { io.observe(el); });
   } else {
-    $all('.reveal').forEach(function (el) { el.classList.add('is-in'); });
+    $all('.reveal, .catsec').forEach(function (el) { el.classList.add('is-in'); });
     $all('[data-count]').forEach(animateCount);
   }
 })();
